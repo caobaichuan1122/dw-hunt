@@ -43,6 +43,18 @@ class Device(private val service: AccessibilityService) {
     private val tpls = HashMap<String, Mat>()
     private val halfTpls = HashMap<String, Mat>()
 
+    /**
+     * Game language (one of [Lang]): selects which template folder is used. Changing it drops the cached templates,
+     * so it can be set before every run.
+     */
+    var language = Lang.SIMPLIFIED
+        set(value) {
+            if (field != value) {
+                field = value
+                clearTemplates()
+            }
+        }
+
     // screen width / height in pixels and the scale factor s = h / 2800 (set by the first screenshot)
     var w = 0
         private set
@@ -87,10 +99,7 @@ class Device(private val service: AccessibilityService) {
                         w = mat.cols()
                         h = mat.rows()
                         s = h / 2800.0
-                        tpls.values.forEach { it.release() }
-                        tpls.clear()
-                        halfTpls.values.forEach { it.release() }
-                        halfTpls.clear()
+                        clearTemplates()
                     }
                     if (cont.isActive) cont.resume(mat)
                 } catch (e: Throwable) {
@@ -169,9 +178,27 @@ class Device(private val service: AccessibilityService) {
 
     // ---- template matching ----
 
-    /** Loads templates/[name].png and scales it to this screen; cached. */
+    private fun clearTemplates() {
+        tpls.values.forEach { it.release() }
+        tpls.clear()
+        halfTpls.values.forEach { it.release() }
+        halfTpls.clear()
+    }
+
+    /**
+     * Opens the template [name] from the folder of the current game language ([Lang.folder]) when that language has
+     * its own copy, else from templates/. Templates without text (icons, "搜索", "世界", "x20") exist only once.
+     */
+    private fun openTemplate(name: String): java.io.InputStream {
+        val folder = Lang.folder(language)
+        return if (folder != null && service.assets.list(folder)?.contains("$name.png") == true)
+            service.assets.open("$folder/$name.png")
+        else service.assets.open("templates/$name.png")
+    }
+
+    /** Loads the template for the current language and scales it to this screen; cached. */
     private fun template(name: String): Mat = tpls.getOrPut(name) {
-        val bytes = service.assets.open("templates/$name.png").use { it.readBytes() }
+        val bytes = openTemplate(name).use { it.readBytes() }
         val raw = Imgcodecs.imdecode(MatOfByte(*bytes), Imgcodecs.IMREAD_COLOR)
         if (abs(s - 1.0) > 0.01) {
             val out = Mat()

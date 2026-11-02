@@ -27,6 +27,10 @@ class MainActivity : Activity() {
     private lateinit var levelWander: EditText
     private lateinit var modeFree: RadioButton
     private lateinit var targetWander: RadioButton
+    private lateinit var langAuto: RadioButton
+    private lateinit var langTraditional: RadioButton
+    private lateinit var langEnglish: RadioButton
+    private lateinit var langKorean: RadioButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,6 +74,28 @@ class MainActivity : Activity() {
             check(if (cfg.getBoolean("wander", false)) targetWander.id else targetGiant.id)
         }
 
+        langAuto = RadioButton(this).apply { text = "自动（跟随手机系统语言）" }
+        val langSimplified = RadioButton(this).apply { text = "简体中文" }
+        langTraditional = RadioButton(this).apply { text = "繁體中文" }
+        langEnglish = RadioButton(this).apply { text = "English" }
+        langKorean = RadioButton(this).apply { text = "한국어" }
+        val langGroup = RadioGroup(this).apply {
+            addView(langAuto)
+            addView(langSimplified)
+            addView(langTraditional)
+            addView(langEnglish)
+            addView(langKorean)
+            check(
+                when (cfg.getString("lang", Lang.AUTO)) {
+                    Lang.SIMPLIFIED -> langSimplified.id
+                    Lang.TRADITIONAL -> langTraditional.id
+                    Lang.ENGLISH -> langEnglish.id
+                    Lang.KOREAN -> langKorean.id
+                    else -> langAuto.id
+                },
+            )
+        }
+
         val col = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding((20 * dp).toInt(), (40 * dp).toInt(), (20 * dp).toInt(), (20 * dp).toInt())
@@ -85,6 +111,8 @@ class MainActivity : Activity() {
             addView(modeGroup)
             addView(label("目标"))
             addView(targetGroup)
+            addView(label("游戏语言（要和游戏里的语言一致）"))
+            addView(langGroup)
             addView(label("巨型丧尸等级"))
             addView(levelGiant)
             addView(label("游荡丧尸等级"))
@@ -114,6 +142,16 @@ class MainActivity : Activity() {
             .putInt("level_wander", (levelWander.text.toString().toIntOrNull() ?: 40).coerceIn(1, 60))
             .putBoolean("free", modeFree.isChecked)
             .putBoolean("wander", targetWander.isChecked)
+            .putString(
+                "lang",
+                when {
+                    langAuto.isChecked -> Lang.AUTO
+                    langTraditional.isChecked -> Lang.TRADITIONAL
+                    langEnglish.isChecked -> Lang.ENGLISH
+                    langKorean.isChecked -> Lang.KOREAN
+                    else -> Lang.SIMPLIFIED
+                },
+            )
             .apply()
         state.text = "已保存"
     }

@@ -101,12 +101,16 @@ class BotService : AccessibilityService() {
             extra?.getBooleanExtra("free", cfg.getBoolean("free", false)) ?: cfg.getBoolean("free", false),
             wander,
             level,
+            extra?.getStringExtra("lang") ?: cfg.getString("lang", Lang.AUTO) ?: Lang.AUTO,
         )
     }
 
-    fun startBot(count: Int, packs: Int, free: Boolean, wander: Boolean, level: Int) {
+    /** [lang] is a saved language preference (see [Lang]); "auto" follows the system language. */
+    fun startBot(count: Int, packs: Int, free: Boolean, wander: Boolean, level: Int, lang: String = Lang.AUTO) {
         if (running) return
         val d = dev ?: return
+        d.language = Lang.resolve(lang)
+        say("游戏语言：${Lang.label(d.language)}")
         setRunning(true)
         job = scope.launch {
             try {
@@ -239,17 +243,34 @@ class BotService : AccessibilityService() {
             })
             show()
         }
+        val langBtn = smallBtn("") {}
+        fun refreshLang() {
+            langBtn.text = "游戏语言：" + Lang.label(cfg.getString("lang", Lang.AUTO)) + "（点击切换）"
+        }
+        langBtn.setOnClickListener {
+            val next = when (cfg.getString("lang", Lang.AUTO)) {
+                Lang.AUTO -> Lang.SIMPLIFIED
+                Lang.SIMPLIFIED -> Lang.TRADITIONAL
+                Lang.TRADITIONAL -> Lang.ENGLISH
+                Lang.ENGLISH -> Lang.KOREAN
+                else -> Lang.AUTO
+            }
+            cfg.edit().putString("lang", next).apply()
+            refreshLang()
+        }
         val roundsRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         stepRow(roundsRow, "打几轮", "count", 50, 10, 10, 999)
         stepRow(packsRow, "最多用体力包", "packs", 100, 20, 20, 5000)
         sp.addView(modeBtn)
         sp.addView(targetBtn)
         sp.addView(levelRow)
+        sp.addView(langBtn)
         sp.addView(roundsRow)
         sp.addView(packsRow)
         sp.addView(label("改动即时保存，下次点 ▶ 生效"))
         refreshMode()
         refreshTarget()
+        refreshLang()
 
         val gear = smallBtn("⚙") {
             sp.visibility = if (sp.visibility == View.VISIBLE) View.GONE else View.VISIBLE

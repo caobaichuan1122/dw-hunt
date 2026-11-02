@@ -15,6 +15,7 @@ An Android accessibility app that automatically hunts zombies in *Dark War: Surv
 - Marches with **squad 1 only**, and checks the highlighted squad in the march popup before every march.
 - If the target is already being rallied by someone else, it cancels and searches again.
 - **Never spends diamonds.** It only taps free claims and backpack packs, never a "buy" button.
+- **Game language**: Simplified Chinese, Traditional Chinese, English or Korean. "Auto" follows the phone's system language; you can also pick one in the settings (the setting must match the language the game is in).
 - Floating bar over the game: **▶** start, **■** stop, **⚙** change settings without leaving the game, **◂** collapse to a small square.
 
 ## Install and use
@@ -31,7 +32,8 @@ For troubleshooting, the log is printed to logcat under the tag `DWHunt`: `adb l
 ## Compatibility
 
 - Fully tested only on a **2000×2800 tablet** with the game in **Simplified Chinese**. An early version also worked on a phone, but the current version has not been re-tested there.
-- The templates are screenshots of Chinese buttons, so the game language must be Simplified Chinese.
+- The templates are screenshots of the game's buttons, so the game language must be one the app has templates for: Simplified Chinese (`templates/`), Traditional Chinese (`templates_tw/`), English (`templates_en/`) or Korean (`templates_ko/`). Set the app's language to the same one as the game, or leave it on "Auto" if both follow the phone's system language.
+- Traditional Chinese, English and Korean were tested on a 1440×3168 phone. Two templates are still missing in those three languages: the green "Claim" button of the free stamina dialog (so in free-stamina mode they never claim, and report "no free stamina") and the "target is already being rallied" dialog.
 - All coordinates are given for 2000×2800 and scaled by screen height. Scaling handles a bigger or smaller screen of the same shape, **not a different aspect ratio**, where the game lays out its UI differently. On another device you will probably need to re-capture the templates and adjust some coordinates.
 - A game update that changes the UI can break the templates.
 
@@ -68,6 +70,10 @@ keyPassword=...
 ```
 
 Dependencies: OpenCV 4.9.0 (Maven) and kotlinx-coroutines.
+
+## Adding another game language
+
+The text buttons are templates, so each language needs its own copies. Put the re-captured images in `app/src/main/assets/templates_<code>/` (for example `templates_tw/`) using the same file names as in `templates/`; a template that has no copy in the language folder (icons, or text that is identical such as "搜索") falls back to `templates/`. Then add the language to `Lang.kt`.
 
 ## Re-creating templates for another device
 

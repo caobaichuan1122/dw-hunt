@@ -324,7 +324,7 @@ class Bot(private val dev: Device, private val log: (String) -> Unit, private va
                 popup = own
                 march = dev.findFast(popup, "btn_march", roiButton())
             }
-            if (march == null || (!wander && dev.findFast(popup, "lbl_rally_limit", roiLimit(), 0.9) == null)) {
+            if (march == null || (!wander && dev.findFast(popup, "lbl_rally_limit", roiLimit(), 0.8) == null)) {
                 log(if (wander) "没出现行军按钮，停止" else "不是巨型丧尸集结框，停止")
                 dev.tap(emptyGround())
                 return Res.FAIL
