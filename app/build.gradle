@@ -29,6 +29,10 @@ android {
                 storePassword props['storePassword']
                 keyAlias props['keyAlias']
                 keyPassword props['keyPassword']
+                // minSdk 30 would skip the legacy v1 (JAR) signature, but some vendor installers (vivo) insist on it
+                enableV1Signing = true
+                enableV2Signing = true
+                enableV3Signing = true
             }
         }
         buildTypes.release.signingConfig = signingConfigs.release
